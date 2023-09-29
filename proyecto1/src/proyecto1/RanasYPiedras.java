@@ -4,60 +4,69 @@ import java.util.Scanner;
 
 public class RanasYPiedras {
 
+    private static final int MOD = 998244353;
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
+        int t = scanner.nextInt();
 
-        int numCasos = scanner.nextInt();
-        scanner.nextLine(); // Consumir el salto de línea después de leer el número de casos
-
-        for (int caso = 0; caso < numCasos; caso++) {
+        while (t-- > 0) {
             int p = scanner.nextInt();
             int r = scanner.nextInt();
             int m = scanner.nextInt();
-            String disposicion = scanner.next();
+            char[] stones = scanner.next().toCharArray();
+            int[][][] dp = new int[p][m + 1][1 << p];
 
-            System.out.println("Disposiciones generadas para el caso " + (caso + 1) + ":");
-
-            contarDisposiciones(p, r, m, disposicion);
-
-            System.out.println(); // Agregar línea en blanco entre casos
+            System.out.println("Resultado: " + countArrangements(stones, m, 0, dp));
         }
 
         scanner.close();
     }
 
-    public static void contarDisposiciones(int p, int r, int m, String disposicion) {
-        int[][][] dp = new int[m + 1][p][p];
+    static int countArrangements(char[] stones, int m, int idx, int[][][] dp) {
+        if (m == 0) {
+            return 1;
+        }
 
-        // Inicializar la matriz dp con la disposición inicial
-        for (int fila = 0; fila < p; fila++) {
-            for (int rana = 0; rana < p; rana++) {
-                dp[0][fila][rana] = (disposicion.charAt(rana) == 'r') ? 1 : 0;
+        if (idx >= stones.length) {
+            return 0;
+        }
+
+        int mask = 0;
+        for (int i = 0; i < stones.length; i++) {
+            mask <<= 1;
+            mask |= stones[i] == 'r' ? 1 : 0;
+        }
+
+        if (dp[idx][m][mask] != 0) {
+            return dp[idx][m][mask];
+        }
+
+        // No move is made
+        int count = countArrangements(stones, m, idx + 1, dp);
+
+        // Try moving the frog to the left or right if possible
+        if (stones[idx] == 'r') {
+            if (idx > 0 && stones[idx - 1] == 'p') {
+                stones[idx] = 'p';
+                stones[idx - 1] = 'r';
+                count += countArrangements(stones, m - 1, idx + 1, dp);
+                count %= MOD;
+                stones[idx] = 'r';
+                stones[idx - 1] = 'p';
+            }
+
+            if (idx < stones.length - 1 && stones[idx + 1] == 'p') {
+                stones[idx] = 'p';
+                stones[idx + 1] = 'r';
+                count += countArrangements(stones, m - 1, idx + 1, dp);
+                count %= MOD;
+                stones[idx] = 'r';
+                stones[idx + 1] = 'p';
             }
         }
 
-        // Calcular dp usando programación dinámica y contar disposiciones en cada movimiento
-        for (int mov = 1; mov <= m; mov++) {
-            for (int fila = 0; fila < p; fila++) {
-                for (int rana = 0; rana < p; rana++) {
-                    for (int nuevaRana = 0; nuevaRana < p; nuevaRana++) {
-                        if (rana != nuevaRana) {
-                            dp[mov][fila][rana] += dp[mov - 1][fila][nuevaRana];
-                        }
-                    }
-                }
-            }
-        }
-
-        // Imprimir la matriz en cada movimiento
-        for (int mov = 0; mov <= m; mov++) {
-            System.out.println("Matriz en el movimiento " + mov + ":");
-            for (int fila = 0; fila < p; fila++) {
-                for (int rana = 0; rana < p; rana++) {
-                    System.out.print(dp[mov][fila][rana] + " ");
-                }
-                System.out.println();
-            }
-        }
+        dp[idx][m][mask] = count;
+        return count;
     }
 }

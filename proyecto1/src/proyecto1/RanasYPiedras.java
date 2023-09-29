@@ -1,7 +1,5 @@
 package proyecto1;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 public class RanasYPiedras {
@@ -10,81 +8,63 @@ public class RanasYPiedras {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        int t = scanner.nextInt();
-        List<Integer> resultados = new ArrayList<>(); // Para almacenar los resultados
+        int totalCasos = scanner.nextInt();
 
-        while (t-- > 0) {
-            int p = scanner.nextInt();
-            int r = scanner.nextInt();
-            int m = scanner.nextInt();
-            char[] stones = scanner.next().toCharArray();
-            int[][][] dp = new int[p][m + 1][1 << p];
+        for (int caso = 0; caso < totalCasos; caso++) {
+            int totalPiedras = scanner.nextInt();
+            int totalRanas = scanner.nextInt();
+            int totalMovimientos = scanner.nextInt();
+            char[] estanque = scanner.next().toCharArray();
+            int[][][] resultadosSubproblemas = new int[totalPiedras][totalMovimientos + 1][1 << totalPiedras];
 
-            int resultado = countArrangements(stones, m, 0, dp);
-            resultados.add(resultado); // Almacenar cada resultado
+            System.out.println(contarDisposiciones(estanque, totalMovimientos, 0, resultadosSubproblemas));
         }
 
         scanner.close();
-
-        // Imprimir todos los resultados al final
-        for (int resultado : resultados) {
-            System.out.println(resultado);
-        }
     }
 
-    static int countArrangements(char[] stones, int m, int idx, int[][][] dp) {
-        if (m == 0 || !canMoveAnyMore(stones)) {
+    static int contarDisposiciones(char[] estanque, int movimientosRestantes, int indice, int[][][] resultadosSubproblemas) {
+        if (movimientosRestantes == 0) {
             return 1;
         }
 
-        if (idx >= stones.length) {
+        if (indice >= estanque.length) {
             return 0;
         }
 
-        int mask = 0;
-        for (int i = 0; i < stones.length; i++) {
-            mask <<= 1;
-            mask |= stones[i] == 'r' ? 1 : 0;
+        int mascaraEstado = 0;
+        for (int i = 0; i < estanque.length; i++) {
+            mascaraEstado <<= 1;
+            mascaraEstado |= estanque[i] == 'r' ? 1 : 0;
         }
 
-        if (dp[idx][m][mask] != 0) {
-            return dp[idx][m][mask];
+        if (resultadosSubproblemas[indice][movimientosRestantes][mascaraEstado] != 0) {
+            return resultadosSubproblemas[indice][movimientosRestantes][mascaraEstado];
         }
 
-        int count = countArrangements(stones, m, idx + 1, dp); 
+        int totalDisposiciones = contarDisposiciones(estanque, movimientosRestantes, indice + 1, resultadosSubproblemas);
 
-        if (stones[idx] == 'r') {
-            if (idx > 0 && stones[idx - 1] == 'p') {
-                stones[idx] = 'p';
-                stones[idx - 1] = 'r';
-                count += countArrangements(stones, m - 1, idx + 1, dp);
-                count %= MOD;
-                stones[idx] = 'r';
-                stones[idx - 1] = 'p';
+        if (estanque[indice] == 'r') {
+            if (indice > 0 && estanque[indice - 1] == 'p') {
+                estanque[indice] = 'p';
+                estanque[indice - 1] = 'r';
+                totalDisposiciones += contarDisposiciones(estanque, movimientosRestantes - 1, indice + 1, resultadosSubproblemas);
+                totalDisposiciones %= MOD;
+                estanque[indice] = 'r';
+                estanque[indice - 1] = 'p';
             }
 
-            if (idx < stones.length - 1 && stones[idx + 1] == 'p') {
-                stones[idx] = 'p';
-                stones[idx + 1] = 'r';
-                count += countArrangements(stones, m - 1, idx + 1, dp);
-                count %= MOD;
-                stones[idx] = 'r';
-                stones[idx + 1] = 'p';
+            if (indice < estanque.length - 1 && estanque[indice + 1] == 'p') {
+                estanque[indice] = 'p';
+                estanque[indice + 1] = 'r';
+                totalDisposiciones += contarDisposiciones(estanque, movimientosRestantes - 1, indice + 1, resultadosSubproblemas);
+                totalDisposiciones %= MOD;
+                estanque[indice] = 'r';
+                estanque[indice + 1] = 'p';
             }
         }
 
-        dp[idx][m][mask] = count;
-        return count;
-    }
-
-    static boolean canMoveAnyMore(char[] stones) {
-        for (int i = 0; i < stones.length; i++) {
-            if (stones[i] == 'r') {
-                if (i > 0 && stones[i - 1] == 'p' || i < stones.length - 1 && stones[i + 1] == 'p') {
-                    return true;
-                }
-            }
-        }
-        return false;
+        resultadosSubproblemas[indice][movimientosRestantes][mascaraEstado] = totalDisposiciones;
+        return totalDisposiciones;
     }
 }

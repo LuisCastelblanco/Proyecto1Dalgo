@@ -2,13 +2,14 @@ package proyecto1;
 
 import java.util.Scanner;
 
-public class RanasYPiedras {
+public class ProblemaP1 {
 
     private static final int MOD = 998244353;
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         int totalCasos = scanner.nextInt();
+        StringBuilder resultados = new StringBuilder();
 
         for (int caso = 0; caso < totalCasos; caso++) {
             int totalPiedras = scanner.nextInt();
@@ -17,10 +18,11 @@ public class RanasYPiedras {
             char[] estanque = scanner.next().toCharArray();
             int[][][] resultadosSubproblemas = new int[totalPiedras][totalMovimientos + 1][1 << totalPiedras];
 
-            System.out.println(contarDisposiciones(estanque, totalMovimientos, 0, resultadosSubproblemas));
+            resultados.append(contarDisposiciones(estanque, totalMovimientos, 0, resultadosSubproblemas)).append("\n");
         }
 
         scanner.close();
+        System.out.print(resultados);
     }
 
     static int contarDisposiciones(char[] estanque, int movimientosRestantes, int indice, int[][][] resultadosSubproblemas) {
